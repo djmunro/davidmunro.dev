@@ -31,6 +31,11 @@ const links = articleData.map((article) => {
 
 console.log(links);
 
+// Create dist directory if it doesn't exist
+if (!fs.existsSync("./dist")) {
+  fs.mkdirSync("./dist");
+}
+
 // Read index template and update `{{ links }}` with the links
 fs.readFile("./template/index.html", "utf8", (err, data) => {
   if (err) {
