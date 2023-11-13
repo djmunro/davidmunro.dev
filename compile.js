@@ -7,9 +7,13 @@ const articlesDir = "./articles";
 const cssSourcePath = path.join(__dirname, 'template', 'styles.css');
 const cssDestPath = path.join(__dirname, 'dist', 'styles.css');
 
+// Create dist directory if it doesn't exist
+if (!fs.existsSync("./dist")) {
+  fs.mkdirSync("./dist");
+}
+
 // Read the content of the source file and write it to the destination
 fs.copyFileSync(cssSourcePath, cssDestPath);
-
 
 // Array to hold article data
 let articleData = [];
@@ -33,19 +37,10 @@ files.forEach((file) => {
   }
 });
 
-console.log(articleData);
-
 // Create links from the article data
 const links = articleData.map((article) => {
   return `<li><a href="/articles/${article.title}.html">${article.title}</a> - ${article.date}</li>`;
 });
-
-console.log(links);
-
-// Create dist directory if it doesn't exist
-if (!fs.existsSync("./dist")) {
-  fs.mkdirSync("./dist");
-}
 
 // Read index template and update `{{ links }}` with the links
 fs.readFile("./template/index.html", "utf8", (err, data) => {
