@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const showdown = require("showdown");
 
 // Directory path
 const articlesDir = "./articles";
@@ -17,8 +18,12 @@ files.forEach((file) => {
     const title = parts[0];
     const date = parts[1];
 
+    // Read the content of the file
+    const filePath = path.join(articlesDir, file);
+    const content = fs.readFileSync(filePath, "utf8");
+
     // Add the data to the articleData array
-    articleData.push({ title, date });
+    articleData.push({ content, date, title });
   }
 });
 
@@ -53,6 +58,9 @@ fs.readFile("./template/index.html", "utf8", (err, data) => {
   });
 });
 
+// Setup markdown converter
+const converter = new showdown.Converter();
+
 // Create article pages
 articleData.forEach((article) => {
   // Read article template and update `{{ title }}` and `{{ date }}`
@@ -62,9 +70,12 @@ articleData.forEach((article) => {
       return;
     }
 
+    const articleContent = converter.makeHtml(article.content);
+
     const html = data
-      .replace("{{ title }}", article.title)
-      .replace("{{ date }}", article.date);
+      .replace(/{{ title }}/g, article.title)
+      .replace(/{{ date }}/g, article.date)
+      .replace("{{ content }}", articleContent);
 
     // Create the article directory if it doesn't exist
     if (!fs.existsSync("./dist/articles")) {

@@ -37,8 +37,8 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: "18"
-      # - name: npm install
-      # run: npm install
+      - name: npm install
+        run: npm install
       - name: compile
         run: node compile.js
       - name: Upload artifact
