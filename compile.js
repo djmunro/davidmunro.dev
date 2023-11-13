@@ -2,8 +2,14 @@ const fs = require("fs");
 const path = require("path");
 const showdown = require("showdown");
 
-// Directory path
+// Constants
 const articlesDir = "./articles";
+const cssSourcePath = path.join(__dirname, 'template', 'styles.css');
+const cssDestPath = path.join(__dirname, 'dist', 'styles.css');
+
+// Read the content of the source file and write it to the destination
+fs.copyFileSync(cssSourcePath, cssDestPath);
+
 
 // Array to hold article data
 let articleData = [];
