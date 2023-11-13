@@ -49,35 +49,35 @@ fs.readFile("./template/index.html", "utf8", (err, data) => {
 });
 
 // Create article pages
-// articleData.forEach((article) => {
-//   // Read article template and update `{{ title }}` and `{{ date }}`
-//   fs.readFile("./template/article.html", "utf8", (err, data) => {
-//     if (err) {
-//       console.error("Error reading file:", err);
-//       return;
-//     }
+articleData.forEach((article) => {
+  // Read article template and update `{{ title }}` and `{{ date }}`
+  fs.readFile("./template/article.html", "utf8", (err, data) => {
+    if (err) {
+      console.error("Error reading file:", err);
+      return;
+    }
 
-//     const html = data
-//       .replace("{{ title }}", article.title)
-//       .replace("{{ date }}", article.date);
+    const html = data
+      .replace("{{ title }}", article.title)
+      .replace("{{ date }}", article.date);
 
-//     // Create the article directory if it doesn't exist
-//     if (!fs.existsSync("./dist/articles")) {
-//       fs.mkdirSync("./dist/articles");
-//     }
+    // Create the article directory if it doesn't exist
+    if (!fs.existsSync("./dist/articles")) {
+      fs.mkdirSync("./dist/articles");
+    }
 
-//     // Write the compiled HTML to a file in the `dist` directory
-//     fs.writeFile(
-//       `./dist/articles/${article.title}.html`,
-//       html,
-//       "utf8",
-//       (err) => {
-//         if (err) {
-//           console.error("Error writing file:", err);
-//           return;
-//         }
-//         console.log(`Successfully compiled ${article.title}.html`);
-//       }
-//     );
-//   });
-// });
+    // Write the compiled HTML to a file in the `dist` directory
+    fs.writeFile(
+      `./dist/articles/${article.title}.html`,
+      html,
+      "utf8",
+      (err) => {
+        if (err) {
+          console.error("Error writing file:", err);
+          return;
+        }
+        console.log(`Successfully compiled ${article.title}.html`);
+      }
+    );
+  });
+});
