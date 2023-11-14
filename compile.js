@@ -35,8 +35,8 @@ articles
   .forEach(file => {
     const content = fs.readFileSync(fp(ARTICLES_DIR, file), "utf-8")
 
-    const {date, title} = converter.getMetadata();
     const articleContent = converter.makeHtml(content);
+    const {date, title} = converter.getMetadata();
     const articleHtml = articleTemplate
       .replace(/{{ title }}/g, title)
       .replace(/{{ date }}/g, date)
