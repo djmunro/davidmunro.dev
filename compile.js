@@ -1,100 +1,52 @@
-const fs = require("fs");
-const path = require("path");
-const showdown = require("showdown");
+const fs = require('fs');
+const path = require('path');
+const showdown = require('showdown');
 
-// Constants
-const articlesDir = "./articles";
-const cssSourcePath = path.join(__dirname, 'template', 'styles.css');
-const cssDestPath = path.join(__dirname, 'dist', 'styles.css');
+const fp = (...relative) => path.join(__dirname, ...relative);
 
-// Create dist directory if it doesn't exist
-if (!fs.existsSync("./dist")) {
-  fs.mkdirSync("./dist");
+const outputDir = "dist";
+const indexTemplate = fs.readFileSync(fp("template", "index.html"), "utf-8");
+const articleTemplate = fs.readFileSync(fp("template", "article.html"), "utf-8");
+const articles = fs.readdirSync(fp("articles")).sort((a, b) => a.localeCompare(b));
+
+const write = (path, content) => {
+  fs.writeFileSync(path, content);
+  console.log(`wrote ${path.replace(`${__dirname}/`, "")}`);
+};
+
+const articleData = articles
+  .filter(file => file.endsWith('.md'))
+  .map(file => {
+    const [title, date] = file.split('.');
+    const content = fs.readFileSync(fp("articles", file), "utf-8")
+    return { title, date, content };
+  });
+
+const articleLinks = articleData.map(article => `<li><a href="/articles/${article.title}.html">${article.title}</a> - ${article.date}</li>`);
+
+const indexHtml = indexTemplate.replace('{{ links }}', articleLinks.join('\n'));
+
+try {
+  fs.rmSync(fp(outputDir), { recursive: true });
+} catch (e) {
+  console.log("info: no existing dist directory");
 }
 
-// Read the content of the source file and write it to the destination
-fs.copyFileSync(cssSourcePath, cssDestPath);
+fs.mkdirSync(fp(outputDir));
 
-// Array to hold article data
-let articleData = [];
+write(fp(outputDir, "index.html"), indexHtml);
 
-// Read files from the directory
-const files = fs.readdirSync(articlesDir);
+fs.mkdirSync(fp(outputDir, "articles"));
 
-files.forEach((file) => {
-  // Split the filename to extract title and date
-  const parts = file.split(".");
-  if (parts.length === 3 && parts[2] === "md") {
-    const title = parts[0];
-    const date = parts[1];
-
-    // Read the content of the file
-    const filePath = path.join(articlesDir, file);
-    const content = fs.readFileSync(filePath, "utf8");
-
-    // Add the data to the articleData array
-    articleData.push({ content, date, title });
-  }
-});
-
-// Create links from the article data
-const links = articleData.map((article) => {
-  return `<li><a href="/articles/${article.title}.html">${article.title}</a> - ${article.date}</li>`;
-});
-
-// Read index template and update `{{ links }}` with the links
-fs.readFile("./template/index.html", "utf8", (err, data) => {
-  if (err) {
-    console.error("Error reading file:", err);
-    return;
-  }
-
-  const html = data.replace("{{ links }}", links.join("\n"));
-  fs.writeFile("./dist/index.html", html, "utf8", (err) => {
-    if (err) {
-      console.error("Error writing file:", err);
-      return;
-    }
-    console.log("Successfully compiled index.html");
-  });
-});
-
-// Setup markdown converter
 const converter = new showdown.Converter();
 
-// Create article pages
-articleData.forEach((article) => {
-  // Read article template and update `{{ title }}` and `{{ date }}`
-  fs.readFile("./template/article.html", "utf8", (err, data) => {
-    if (err) {
-      console.error("Error reading file:", err);
-      return;
-    }
-
-    const articleContent = converter.makeHtml(article.content);
-
-    const html = data
+for (const article of articleData) {
+  const articleContent = converter.makeHtml(article.content);
+  const articleHtml = articleTemplate
       .replace(/{{ title }}/g, article.title)
       .replace(/{{ date }}/g, article.date)
-      .replace("{{ content }}", articleContent);
+      .replace('{{ content }}', articleContent);
+  write(fp(outputDir, "articles", `${article.title}.html`), articleHtml)
+}
 
-    // Create the article directory if it doesn't exist
-    if (!fs.existsSync("./dist/articles")) {
-      fs.mkdirSync("./dist/articles");
-    }
-
-    // Write the compiled HTML to a file in the `dist` directory
-    fs.writeFile(
-      `./dist/articles/${article.title}.html`,
-      html,
-      "utf8",
-      (err) => {
-        if (err) {
-          console.error("Error writing file:", err);
-          return;
-        }
-        console.log(`Successfully compiled ${article.title}.html`);
-      }
-    );
-  });
-});
+write(fp(outputDir, 'styles.css'), fs.readFileSync(fp('template', 'styles.css')))
