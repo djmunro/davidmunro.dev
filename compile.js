@@ -31,9 +31,9 @@ fs.mkdirSync(fp(outputDir, ARTICLES_DIR));
 const articleLinks = []
 
 articles
-  .filter(file => file.endsWith('.md'))
-  .forEach(file => {
-    const content = fs.readFileSync(fp(ARTICLES_DIR, file), "utf-8")
+  .filter(filename => filename.endsWith('.md'))
+  .forEach(filename => {
+    const content = fs.readFileSync(fp(ARTICLES_DIR, filename), "utf-8")
 
     const articleContent = converter.makeHtml(content);
     const {date, title} = converter.getMetadata();
@@ -42,10 +42,12 @@ articles
       .replace(/{{ date }}/g, date)
       .replace('{{ content }}', articleContent);
 
-    write(fp(outputDir, ARTICLES_DIR, `${title}.html`), articleHtml)
+    const filenameWithoutExtension = filename.replace(/\.md$/, '');
+
+    write(fp(outputDir, ARTICLES_DIR, `${filenameWithoutExtension}.html`), articleHtml)
 
     // Generate article links for index page
-    articleLinks.push(`<li><a href="/articles/${title}.html">${title}</a> - ${date}</li>`)
+    articleLinks.push(`<li><a href="/articles/${filenameWithoutExtension}.html">${title}</a> - ${date}</li>`)
   })
 
 write(fp(outputDir, "index.html"), indexTemplate.replace('{{ links }}', articleLinks.join('\n')))
