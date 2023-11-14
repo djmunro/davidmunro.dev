@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const showdown = require('showdown');
 
+// Variables
 const ARTICLES_DIR = "articles";
 const TEMPLATE_DIR = "template";
 
@@ -14,7 +15,7 @@ const write = (path, content) => {
 
 const articles = fs.readdirSync(fp(ARTICLES_DIR)).sort((a, b) => a.localeCompare(b));
 const articleTemplate = fs.readFileSync(fp(TEMPLATE_DIR, "article.html"), "utf-8");
-const converter = new showdown.Converter();
+const converter = new showdown.Converter({metadata: true});
 const indexTemplate = fs.readFileSync(fp(TEMPLATE_DIR, "index.html"), "utf-8");
 const outputDir = "dist";
 
@@ -27,26 +28,25 @@ try {
 fs.mkdirSync(fp(outputDir));
 fs.mkdirSync(fp(outputDir, ARTICLES_DIR));
 
-// Write index and articles
-const articleData = articles
+const articleLinks = []
+
+articles
   .filter(file => file.endsWith('.md'))
-  .map(file => {
-    const [title, date] = file.split('.');
+  .forEach(file => {
     const content = fs.readFileSync(fp(ARTICLES_DIR, file), "utf-8")
-    return { title, date, content };
-  });
 
-const articleLinks = articleData.map(article => `<li><a href="/articles/${article.title}.html">${article.title}</a> - ${article.date}</li>`);
-const indexHtml = indexTemplate.replace('{{ links }}', articleLinks.join('\n'));
-write(fp(outputDir, "index.html"), indexHtml);
-
-for (const article of articleData) {
-  const articleContent = converter.makeHtml(article.content);
-  const articleHtml = articleTemplate
-      .replace(/{{ title }}/g, article.title)
-      .replace(/{{ date }}/g, article.date)
+    const {date, title} = converter.getMetadata();
+    const articleContent = converter.makeHtml(content);
+    const articleHtml = articleTemplate
+      .replace(/{{ title }}/g, title)
+      .replace(/{{ date }}/g, date)
       .replace('{{ content }}', articleContent);
-  write(fp(outputDir, ARTICLES_DIR, `${article.title}.html`), articleHtml)
-}
 
+    write(fp(outputDir, ARTICLES_DIR, `${title}.html`), articleHtml)
+
+    // Generate article links for index page
+    articleLinks.push(`<li><a href="/articles/${title}.html">${title}</a> - ${date}</li>`)
+  })
+
+write(fp(outputDir, "index.html"), indexTemplate.replace('{{ links }}', articleLinks.join('\n')))
 write(fp(outputDir, 'styles.css'), fs.readFileSync(fp('template', 'styles.css')))
