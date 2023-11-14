@@ -3,8 +3,6 @@ date: 2023-11-13
 title: htmx clone
 ---
 
-# htmx-clone
-
 You can find the repository for this project here: [htmx-clone](https://github.com/djmunro/htmx-clone).
 
 ## Overview
