@@ -7,7 +7,7 @@ You can find the repository for this project [here](https://github.com/djmunro/s
 
 ## Overview
 
-`ss-react is a minimalistic yet powerful component library for React, created to streamline the process of styling React applications. It's an excellent resource for both personal projects and for learning the intricacies of packaging and publishing packages to npm.
+`ss-react` is a minimalistic yet powerful component library for React, created to streamline the process of styling React applications. It's an excellent resource for both personal projects and for learning the intricacies of packaging and publishing packages to npm.
 
 ## Key Features and Benefits
 

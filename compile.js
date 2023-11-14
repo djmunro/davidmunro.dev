@@ -1,6 +1,6 @@
-const fs = require('fs');
-const path = require('path');
-const showdown = require('showdown');
+const fs = require("fs");
+const path = require("path");
+const showdown = require("showdown");
 
 // Variables
 const ARTICLES_DIR = "articles";
@@ -13,9 +13,22 @@ const write = (path, content) => {
   console.log(`wrote ${path.replace(`${__dirname}/`, "")}`);
 };
 
-const articles = fs.readdirSync(fp(ARTICLES_DIR)).sort((a, b) => a.localeCompare(b));
-const articleTemplate = fs.readFileSync(fp(TEMPLATE_DIR, "article.html"), "utf-8");
-const converter = new showdown.Converter({metadata: true});
+const articles = fs
+  .readdirSync(fp(ARTICLES_DIR))
+  .map((filename) => {
+    const filePath = fp(ARTICLES_DIR, filename);
+    return {
+      name: filename,
+      time: fs.statSync(filePath).mtime.getTime(),
+    };
+  })
+  .sort((a, b) => b.time - a.time) // Sort in descending order of modification time
+  .map((file) => file.name);
+const articleTemplate = fs.readFileSync(
+  fp(TEMPLATE_DIR, "article.html"),
+  "utf-8"
+);
+const converter = new showdown.Converter({ metadata: true });
 const indexTemplate = fs.readFileSync(fp(TEMPLATE_DIR, "index.html"), "utf-8");
 const outputDir = "dist";
 
@@ -28,27 +41,38 @@ try {
 fs.mkdirSync(fp(outputDir));
 fs.mkdirSync(fp(outputDir, ARTICLES_DIR));
 
-const articleLinks = []
+const articleLinks = [];
 
 articles
-  .filter(filename => filename.endsWith('.md'))
-  .forEach(filename => {
-    const content = fs.readFileSync(fp(ARTICLES_DIR, filename), "utf-8")
+  .filter((filename) => filename.endsWith(".md"))
+  .forEach((filename) => {
+    const content = fs.readFileSync(fp(ARTICLES_DIR, filename), "utf-8");
 
     const articleContent = converter.makeHtml(content);
-    const {date, title} = converter.getMetadata();
+    const { date, title } = converter.getMetadata();
     const articleHtml = articleTemplate
       .replace(/{{ title }}/g, title)
       .replace(/{{ date }}/g, date)
-      .replace('{{ content }}', articleContent);
+      .replace("{{ content }}", articleContent);
 
-    const filenameWithoutExtension = filename.replace(/\.md$/, '');
+    const filenameWithoutExtension = filename.replace(/\.md$/, "");
 
-    write(fp(outputDir, ARTICLES_DIR, `${filenameWithoutExtension}.html`), articleHtml)
+    write(
+      fp(outputDir, ARTICLES_DIR, `${filenameWithoutExtension}.html`),
+      articleHtml
+    );
 
     // Generate article links for index page
-    articleLinks.push(`<li><a href="/articles/${filenameWithoutExtension}.html">${title}</a> - ${date}</li>`)
-  })
+    articleLinks.push(
+      `<li><a href="/articles/${filenameWithoutExtension}.html">${title}</a> - ${date}</li>`
+    );
+  });
 
-write(fp(outputDir, "index.html"), indexTemplate.replace('{{ links }}', articleLinks.join('\n')))
-write(fp(outputDir, 'styles.css'), fs.readFileSync(fp('template', 'styles.css')))
+write(
+  fp(outputDir, "index.html"),
+  indexTemplate.replace("{{ links }}", articleLinks.join("\n"))
+);
+write(
+  fp(outputDir, "styles.css"),
+  fs.readFileSync(fp("template", "styles.css"))
+);
